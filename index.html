@@ -6,8 +6,11 @@
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
 <title>Школа Бойко</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
 <style>
+@font-face{font-family:Onest;src:url("assets/fonts/onest-cyrillic.woff2") format("woff2");font-style:normal;font-weight:400 600;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:Onest;src:url("assets/fonts/onest-latin.woff2") format("woff2");font-style:normal;font-weight:400 600;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Unbounded;src:url("assets/fonts/unbounded-cyrillic.woff2") format("woff2");font-style:normal;font-weight:500 600;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:Unbounded;src:url("assets/fonts/unbounded-latin.woff2") format("woff2");font-style:normal;font-weight:500 600;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 /* Layout: photo hero (navy overlay, text left, block composition right) + stats strip, programs, care band, admission steps, team, reviews, FAQ, contacts + form. */
 :root{
   --bg:#F4F7FC; --surface:#FFFFFF; --ink:#0E1B38; --muted:#55627F; --line:#D6DFEE;
@@ -394,7 +397,7 @@ footer{padding-block:28px;border-top:1px solid var(--line);font-size:14px;color:
   </div>
 </footer>
 
-<div class="lb" id="lb" role="dialog" aria-label="Фото"><button type="button" id="lbx">Закрити</button><img id="lbi" alt=""></div>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Фото" tabindex="-1"><button type="button" id="lbx">Закрити</button><img id="lbi" alt=""></div>
 
 <div class="dock"><a class="btn" href="#apply" data-v="">Записатися на співбесіду</a></div>
 
@@ -423,6 +426,11 @@ footer{padding-block:28px;border-top:1px solid var(--line);font-size:14px;color:
     {src:'https://optim.tildacdn.net/tild6537-3232-4361-b564-333138646436/-/cover/720x720/center/center/-/format/webp/photo.jpg.webp',name:'',role:''}
   ];
   var gal=document.getElementById('gal'),lb=document.getElementById('lb'),lbi=document.getElementById('lbi');
+  var lbx=document.getElementById('lbx'),lbOpener=null;
+  function openLb(src,alt){
+    lbOpener=document.activeElement;
+    lbi.src=src;lbi.alt=alt;lb.classList.add('on');lbx.focus();
+  }
   var spans=['big','','','','','wide','','','wide','wide'];
   for(var i=0;i<10;i++){
     var ph=PHOTOS[i],cls='tile '+spans[i];
@@ -432,7 +440,7 @@ footer{padding-block:28px;border-top:1px solid var(--line);font-size:14px;color:
       (function(b,cls){im.onerror=function(){b.className=cls+' empty';b.disabled=true;b.innerHTML='<span class="crest" aria-hidden="true"></span><span>Тут буде фото</span>';};})(b,cls);
       im.src=ph.src;b.appendChild(im);
       if(ph.cap){var c=document.createElement('span');c.className='cap';c.textContent=ph.cap;b.appendChild(c);}
-      (function(p){b.addEventListener('click',function(){lbi.src=p.src;lbi.alt=p.cap||'Фото школи';lb.classList.add('on');});})(ph);
+      (function(p){b.addEventListener('click',function(){openLb(p.src,p.cap||'Фото школи');});})(ph);
       gal.appendChild(b);
     }else{
       var d=document.createElement('div');d.className=cls+' empty';
@@ -440,10 +448,18 @@ footer{padding-block:28px;border-top:1px solid var(--line);font-size:14px;color:
       gal.appendChild(d);
     }
   }
-  function closeLb(){lb.classList.remove('on');lbi.removeAttribute('src');}
-  document.getElementById('lbx').addEventListener('click',closeLb);
+  function closeLb(){
+    if(!lb.classList.contains('on'))return;
+    lb.classList.remove('on');lbi.removeAttribute('src');
+    if(lbOpener&&lbOpener.isConnected)lbOpener.focus();
+    lbOpener=null;
+  }
+  lbx.addEventListener('click',closeLb);
   lb.addEventListener('click',function(e){if(e.target===lb)closeLb();});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLb();});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){closeLb();return;}
+    if(e.key==='Tab'&&lb.classList.contains('on')){e.preventDefault();lbx.focus();}
+  });
   var dph=document.getElementById('dph'),dim=new Image();dim.alt='Макагон Олександр Еммануїлович';dim.referrerPolicy='no-referrer';
   dim.onload=function(){dph.textContent='';dph.appendChild(dim);};dim.src=DIRECTOR_SRC;
   var REVIEWS=['https://static.tildacdn.net/tild3735-6362-4234-b666-666238643065/Screenshot_7.jpg',
@@ -456,7 +472,7 @@ footer{padding-block:28px;border-top:1px solid var(--line);font-size:14px;color:
     var im=new Image();im.alt='Відгук батьків';im.loading='lazy';im.referrerPolicy='no-referrer';
     im.onerror=function(){b.remove();if(++rvFail===REVIEWS.length){var d=document.createElement('p');d.className='rvempty';d.textContent='Тут будуть скріншоти відгуків';rv.appendChild(d);}};
     im.src=u;b.appendChild(im);
-    b.addEventListener('click',function(){lbi.src=u;lbi.alt='Відгук батьків';lb.classList.add('on');});
+    b.addEventListener('click',function(){openLb(u,'Відгук батьків');});
     rv.appendChild(b);
   });
   var tg=document.getElementById('tgrid');
